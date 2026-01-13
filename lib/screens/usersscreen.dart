@@ -1,3 +1,4 @@
+import 'package:api_practice/screens/product_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
@@ -62,6 +63,22 @@ class _UsersScreenState extends State<UsersScreen> {
                 foregroundColor: Colors.white,
               ),
               child: const Text("users"),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProductListScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("products"),
             ),
           ),
         ],

@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
-import '../api_services/api_services_products.dart';
-import '../model/products/product.dart';
+import '../api_services/api_service_product.dart';
+import '../model/product.dart';
 
 class ProductProvider extends ChangeNotifier {
-  List<Product> products = [];
+  List<Product> _products = [];
   bool isLoading = false;
   String? errorMessage;
 
-  // ================= FETCH PRODUCTS =================
+  List<Product> get products => _products;
+
+  /// Fetch all products from API
   Future<void> fetchProducts() async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      products = await ProductApiService.getProducts();
+      // simulate network delay for shimmer testing (optional)
+      await Future.delayed(const Duration(seconds: 3));
+
+      final products = await ApiService.getProducts();
+      _products = products;
     } catch (e) {
-      errorMessage = "Failed to fetch products: $e";
-      products = [];
+      _products = [];
+      errorMessage = "Failed to load products: $e";
       debugPrint(errorMessage);
     } finally {
       isLoading = false;
@@ -25,82 +31,51 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  // ================= ADD PRODUCT =================
-  Future<bool> addProduct(Product product) async {
-    isLoading = true;
-    notifyListeners();
-
+  /// Add a new product
+  Future<void> addProduct(Product product) async {
     try {
-      final newProduct = await ProductApiService.addProduct(product);
-      if (newProduct != null) {
-        products.insert(0, newProduct);
-        return true;
-      } else {
-        errorMessage = "Failed to add product";
-        return false;
-      }
+      isLoading = true;
+      notifyListeners();
+
+      final newProduct = await ApiService.addProduct(product);
+      _products.add(newProduct);
     } catch (e) {
-      errorMessage = "Error adding product: $e";
-      debugPrint(errorMessage);
-      return false;
+      debugPrint("Failed to add product: $e");
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  // ================= UPDATE PRODUCT =================
-  Future<bool> updateProduct(Product product) async {
-    if (product.id == null) {
-      errorMessage = "Product ID is null";
-      notifyListeners();
-      return false;
-    }
-
-    isLoading = true;
-    notifyListeners();
-
+  /// Update an existing product
+  Future<void> updateProduct(Product product) async {
     try {
-      final updatedProduct =
-      await ProductApiService.updateProduct(product);
+      isLoading = true;
+      notifyListeners();
 
-      if (updatedProduct != null) {
-        final index =
-        products.indexWhere((p) => p.id == updatedProduct.id);
-        if (index != -1) products[index] = updatedProduct;
-        return true;
-      } else {
-        errorMessage = "Failed to update product";
-        return false;
+      final updated = await ApiService.updateProduct(product);
+      final index = _products.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        _products[index] = updated;
       }
     } catch (e) {
-      errorMessage = "Error updating product: $e";
-      debugPrint(errorMessage);
-      return false;
+      debugPrint("Failed to update product: $e");
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  // ================= DELETE PRODUCT =================
-  Future<bool> deleteProduct(int id) async {
-    isLoading = true;
-    notifyListeners();
-
+  /// Delete a product
+  Future<void> deleteProduct(String id) async {
     try {
-      final success = await ProductApiService.deleteProduct(id);
-      if (success) {
-        products.removeWhere((p) => p.id == id);
-        return true;
-      } else {
-        errorMessage = "Failed to delete product";
-        return false;
-      }
+      isLoading = true;
+      notifyListeners();
+
+      await ApiService.deleteProduct(id);
+      _products.removeWhere((p) => p.id == id);
     } catch (e) {
-      errorMessage = "Error deleting product: $e";
-      debugPrint(errorMessage);
-      return false;
+      debugPrint("Failed to delete product: $e");
     } finally {
       isLoading = false;
       notifyListeners();
